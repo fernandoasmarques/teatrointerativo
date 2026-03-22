@@ -1,43 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <title>RA com Vídeo - Galinha Pintadinha</title>
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Strobo Ultra 2026</title>
     <style>
-        .arjs-loader { height: 100%; width: 100%; position: absolute; top: 0; left: 0; background-color: rgba(0, 0, 0, 0.8); z-index: 9999; display: flex; justify-content: center; align-items: center; color: white; }
-        #playButton { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 15px 30px; background: #222; color: white; border: none; border-radius: 10px; z-index: 1000; font-size: 18px; cursor: pointer; }
+        :root { --bg: #121212; --accent: #00ff88; }
+        body { 
+            margin: 0; height: 100vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            background-color: var(--bg); color: white; font-family: system-ui, -apple-system;
+            transition: background-color 0.05s; overflow: hidden;
+        }
+        .controls { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 20px; text-align: center; z-index: 10; }
+        button {
+            padding: 20px 60px; font-size: 1.5rem; font-weight: bold; cursor: pointer;
+            border-radius: 50px; border: none; background: var(--accent); color: black;
+            box-shadow: 0 0 20px rgba(0,255,136,0.4); margin-bottom: 20px;
+        }
+        button.active { background: #ff4444; color: white; box-shadow: 0 0 20px rgba(255,68,68,0.4); }
+        input[type=range] { width: 100%; margin: 15px 0; }
+        .flash-screen { background-color: white !important; }
     </style>
 </head>
+<body>
 
-<body style="margin: 0px; overflow: hidden;">
-    <button id="playButton">CLIQUE PARA INICIAR</button>
-
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-        
-        <a-assets>
-            <video id="vid" src="video.mp4" preload="auto" loop="true" crossorigin="anonymous" playsinline webkit-playsinline></video>
-        </a-assets>
-
-        <a-marker type="pattern" url="marker.patt">
-            <a-video src="#vid" width="2" height="1.15" position="0 0.5 0" rotation="-90 0 0"></a-video>
-        </a-marker>
-
-        <a-entity camera></a-entity>
-    </a-scene>
+    <div class="controls">
+        <button id="mainBtn">INICIAR</button>
+        <div>
+            <label>Velocidade: <span id="hzVal">2</span> Hz</label><br>
+            <input type="range" id="freqRange" min="1" max="20" value="2">
+        </div>
+        <small id="status">Aguardando...</small>
+    </div>
 
     <script>
-        // Lógica para dar play no vídeo quando clicar no botão
-        const btn = document.getElementById('playButton');
-        const video = document.getElementById('vid');
+        const btn = document.getElementById('mainBtn');
+        const freqRange = document.getElementById('freqRange');
+        const hzVal = document.getElementById('hzVal');
+        const status = document.getElementById('status');
         
-        btn.addEventListener('click', () => {
-            video.play();
-            btn.style.display = 'none'; // Esconde o botão após o play
-        });
+        let track = null;
+        let intervalId = null;
+        let isOn = false;
+        let wakeLock = null;
+
+        // Atualiza valor do texto do slider
+        freqRange.oninput = () => hzVal.innerText = freqRange.value;
+
+        async function startStrobe() {
+            try {
+                // 1. Tenta manter a tela acesa
+                if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+
+                // 2. Tenta acesso à câmera
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
+                });
+                track = stream.getVideoTracks()[0];
+                
+                const caps = track.getCapabilities();
+                const hasTorch = !!caps.torch;
+                status.innerText = hasTorch ? "Modo: LED + Tela" : "Modo: Apenas Tela";
+
+                // 3. Loop do Strobo
+                const interval = 1000 / (freqRange.value * 2); 
+                
+                intervalId = setInterval(async () => {
+                    isOn = !isOn;
+                    
+                    // Pisca Tela
+                    if (isOn) document.body.classList.add('flash-screen');
+                    else document.body.classList.remove('flash-screen');
+
+                    // Pisca LED (se disponível)
+                    if (hasTorch) {
+                        try {
+                            await track.applyConstraints({ advanced: [{ torch: isOn }] });
+                        } catch (e) { /* Silencia erros de concorrência no iOS */ }
+                    }
+                }, interval);
+
+                btn.innerText = "PARAR";
+                btn.classList.add('active');
+
+            } catch (err) {
+                console.error(err);
+                status.innerText = "Erro: " + err.message;
+            }
+        }
+
+        function stopStrobe() {
+            clearInterval(intervalId);
+            intervalId = null;
+            document.body.classList.remove('flash-screen');
+            if (track) {
+                track.applyConstraints({ advanced: [{ torch: false }] });
+                track.stop();
+            }
+            if (wakeLock) wakeLock.release();
+            btn.innerText = "INICIAR";
+            btn.classList.remove('active');
+            status.innerText = "Parado";
+        }
+
+        btn.onclick = () => intervalId ? stopStrobe() : startStrobe();
     </script>
 </body>
 </html>
