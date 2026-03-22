@@ -1,30 +1,40 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Projeto RA com GIF e QR Code</title>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>Projeto RA Fullscreen</title>
+    
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/mayognaise/aframe-gif-shader@master/dist/aframe-gif-shader.min.js"></script>
-  </head>
 
-  <body style="margin: 0px; overflow: hidden;">
+    <style>
+        /* Força o body e o html a ocuparem 100% da tela sem margens */
+        body { margin: 0; overflow: hidden; width: 100%; height: 100%; }
+        canvas { width: 100% !important; height: 100% !important; margin-left: 0 !important; }
+    </style>
+</head>
+
+<body>
     <a-scene 
-      embedded 
-      arjs="sourceType: webcam; debugUIEnabled: false; videoTexture: true;"
-      vr-mode-ui="enabled: false">
+        vr-mode-ui="enabled: false;"
+        renderer="logarithmicDepthBuffer: true;"
+        embedded 
+        arjs="trackMethod: best; sourceType: webcam; debugUIEnabled: false;">
       
-      <a-marker type="pattern" url="marker.patt">
-        
-        <a-entity 
-          geometry="primitive: plane; width: 2; height: 2"
-          position="0 0.5 0" 
-          rotation="-90 0 0"
-          material="shader:gif; src:url(https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExZG9wc2s4ZXpqeWJkanN6bXBtcW9nZHl3ZDB2MDJ0c2w4azB2M2N1ZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/nBphZTdl9QQjNk4UI8/giphy.gif); transparent: true;">
-        </a-entity>
+        <a-marker type="pattern" url="marker.patt">
+            
+            <a-entity 
+                geometry="primitive: plane; width: 2; height: 2"
+                position="0 0.1 0" 
+                rotation="-90 0 0"
+                material="shader:gif; src:url(https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExZG9wc2s4ZXpqeWJkanN6bXBtcW9nZHl3ZDB2MDJ0c2w4azB2M2N1ZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/nBphZTdl9QQjNk4UI8/giphy.gif); transparent: true;">
+            </a-entity>
 
-      </a-marker>
+        </a-marker>
 
-      <a-entity camera></a-entity>
+        <a-entity camera></a-entity>
     </a-scene>
-  </body>
+</body>
 </html>
