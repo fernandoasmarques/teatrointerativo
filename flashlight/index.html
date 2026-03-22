@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lanterna Strobo</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #121212;
+            color: white;
+            font-family: sans-serif;
+        }
+        button {
+            padding: 20px 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 10px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            transition: 0.3s;
+        }
+        button.active {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="strobeBtn">Iniciar Strobo</button>
+
+    <script>
+        const btn = document.getElementById('strobeBtn');
+        let stream = null;
+        let track = null;
+        let intervalId = null;
+        let isOn = false;
+
+        btn.addEventListener('click', async () => {
+            if (intervalId) {
+                // Se já estiver rodando, para tudo
+                stopStrobe();
+                return;
+            }
+
+            try {
+                // Solicita acesso à câmera traseira
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
+                });
+
+                track = stream.getVideoTracks()[0];
+                const capabilities = track.getCapabilities();
+
+                // Verifica se o dispositivo suporta lanterna (torch)
+                if (!capabilities.torch) {
+                    alert("Lanterna não suportada neste navegador/dispositivo.");
+                    return;
+                }
+
+                btn.innerText = "Parar Strobo";
+                btn.classList.add('active');
+
+                // Inicia o intervalo de 500ms (0,5s)
+                intervalId = setInterval(async () => {
+                    isOn = !isOn;
+                    await track.applyConstraints({
+                        advanced: [{ torch: isOn }]
+                    });
+                }, 500);
+
+            } catch (err) {
+                console.error("Erro ao acessar a lanterna:", err);
+                alert("Erro ao acessar a câmera. Certifique-se de estar em HTTPS.");
+            }
+        });
+
+        function stopStrobe() {
+            clearInterval(intervalId);
+            intervalId = null;
+            isOn = false;
+            
+            if (track) {
+                track.applyConstraints({ advanced: [{ torch: false }] });
+                track.stop(); // Encerra o uso da câmera
+            }
+
+            btn.innerText = "Iniciar Strobo";
+            btn.classList.remove('active');
+        }
+    </script>
+</body>
+</html>
