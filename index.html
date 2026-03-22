@@ -1,20 +1,30 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Meu Projeto de RA Simples</title>
-    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <title>Projeto RA com GIF e QR Code</title>
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mayognaise/aframe-gif-shader@master/dist/aframe-gif-shader.min.js"></script>
   </head>
 
   <body style="margin: 0px; overflow: hidden;">
-    <a-scene embedded arjs>
+    <a-scene 
+      embedded 
+      arjs="sourceType: webcam; debugUIEnabled: false; videoTexture: true;"
+      vr-mode-ui="enabled: false">
       
-      <a-marker preset="hiro">
-        <a-box position="0 0.5 0" material="color: blue;" animation="property: rotation; to: 0 360 0; loop: true; dur: 3000"></a-box>
+      <a-marker type="pattern" url="marker.patt">
+        
+        <a-entity 
+          geometry="primitive: plane; width: 2; height: 2"
+          position="0 0.5 0" 
+          rotation="-90 0 0"
+          material="shader:gif; src:url(https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExZG9wc2s4ZXpqeWJkanN6bXBtcW9nZHl3ZDB2MDJ0c2w4azB2M2N1ZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/nBphZTdl9QQjNk4UI8/giphy.gif); transparent: true;">
+        </a-entity>
+
       </a-marker>
 
       <a-entity camera></a-entity>
-      
     </a-scene>
   </body>
 </html>
