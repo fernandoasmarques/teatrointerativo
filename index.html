@@ -22,7 +22,7 @@
             <video id="vid" src="video.mp4" preload="auto" loop="true" crossorigin="anonymous" playsinline webkit-playsinline></video>
         </a-assets>
 
-        <a-marker type="pattern" url="marker.patt">
+        <a-marker preset="hiro">
             <a-video src="#vid" width="2" height="1.15" position="0 0.5 0" rotation="-90 0 0"></a-video>
         </a-marker>
 
@@ -30,13 +30,12 @@
     </a-scene>
 
     <script>
-        // Lógica para dar play no vídeo quando clicar no botão
         const btn = document.getElementById('playButton');
         const video = document.getElementById('vid');
         
         btn.addEventListener('click', () => {
             video.play();
-            btn.style.display = 'none'; // Esconde o botão após o play
+            btn.style.display = 'none';
         });
     </script>
 </body>
